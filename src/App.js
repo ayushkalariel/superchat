@@ -2,15 +2,16 @@ import React from 'react';
 import './App.css';
 
 //firebase sdk
-import firebase, { initializeApp } from 'firebase/app';
-import 'firebase/firestore';
-import 'firebase/auth';
+// v9 compat packages are API compatible with v8 code
+import firebase from 'firebase/compat/app';
+import 'firebase/compat/auth';
+import 'firebase/compat/firestore';
 
 //hooks
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { useCollectionData } from 'react-firebase-hooks/firestore';
 
-firebase,initializeApp({
+firebase.initializeApp({
   apiKey: "AIzaSyABGAm_r4_UF87pBaXsvz3XVJjuh2e2k08",
   authDomain: "superchat-e36dc.firebaseapp.com",
   projectId: "superchat-e36dc",
@@ -62,6 +63,23 @@ function ChatRoom() {
 
   const [messages] = useCollectionData(query, {idField: 'id'});
 
+  const [formValue, setFormValue] = useState('');
+
+  const sendMessage = async(e) => {
+    e.preventDefault();                                                               //to prevent the page from refreshing
+
+    const {uid, photoURL} = auth.currentUser;                                         //Grabs uid from currently ogged in user
+
+    await messagesRef.add({                                                           //creates a new document in the databse                 
+      text: formValue,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      uid,
+      photoURL
+    });
+
+    setFormValue('')                                                                  //resetting form value back to an empty string
+  }
+
 
   return(
     <>
@@ -69,10 +87,28 @@ function ChatRoom() {
         {messages && messages.map(msg => <ChatMessage key={msg.id} message={msg} />)}
       </div>
 
-      <div>
+      <form onSubmit={sendMessage}>
+        
+        <input value={formValue} onChange={(e) => setFormValue(e.target.value)} placeholder="say something nice" />
 
-      </div>
+        <button type="submit">Send</button>
+
+      </form>
+
     </>
+  )
+}
+
+function ChatMessage(props) {
+  const { text, uid } = props.message;
+
+  const messageClass = uid === auth.currentUser.uid ? 'sent' : 'received';
+
+  return(
+    <div className={'message ${messageClass}'}>
+      <img src={photoURL}/>
+      <p>{text}</p>
+    </div>
   )
 }
 
