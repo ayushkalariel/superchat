@@ -78,13 +78,12 @@ function ChatRoom() {
   const sendMessage = async(e) => {
     e.preventDefault();                                                               //to prevent the page from refreshing
 
-    const {uid, photoURL} = auth.currentUser;                                         //Grabs uid from currently ogged in user
+    const { uid } = auth.currentUser;                                         //Grabs uid from currently ogged in user
 
     await messagesRef.add({                                                           //creates a new document in the databse                 
       text: formValue,
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-      uid,
-      photoURL
+      uid
     });
 
     setFormValue('')                                                                  //resetting form value back to an empty string
@@ -120,7 +119,7 @@ function ChatMessage(props) {
 
   return(<>
     <div className={'message ${messageClass}'}>
-      <img src={photoURL || 'https://api.adorable.io/avatars/23/abott@adorable.png'}/>
+      <img src={'https://api.adorable.io/avatars/23/abott@adorable.png'}/>
       <p>{text}</p>
     </div>
   </>)
