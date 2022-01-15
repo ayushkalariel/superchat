@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import './App.css';
 
 //firebase sdk
@@ -6,6 +6,7 @@ import './App.css';
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/auth';
 import 'firebase/compat/firestore';
+import 'firebase/compat/analytics';
 
 //hooks
 import { useAuthState } from 'react-firebase-hooks/auth';
@@ -23,6 +24,7 @@ firebase.initializeApp({
 
 const auth = firebase.auth();
 const firestore = firebase.firestore();
+const analytics = firebase.analytics();
 
 function App() {
 
@@ -31,7 +33,8 @@ function App() {
   return (
     <div className="App">
       <header>
-        
+        <h1>⚛️🔥💬</h1>
+        <SignOut/>
       </header>
 
       <section>
@@ -46,18 +49,25 @@ function SignIn() {
     const provider = new firebase.auth.GoogleAuthProvider();
     auth.signInWithPopup(provider);
   }
+
   return(
-    <button onClick={signInWithGoogle}>Sign in with Google</button>
+    <>
+      <button className="sign-in" onClick={signInWithGoogle}>Sign in with Google</button>
+      <p>Do not violate the community guidelines or you will be banned for life!</p>
+    </>
   ) 
 }
 
 function SignOut() {
   return auth.currentUser && (
-    <button onClick={() => auth.signOut()}>Sign Out</button>
+    <button className="sign-out" onClick={() => auth.signOut()}>Sign Out</button>
   )
 }
 
 function ChatRoom() {
+
+  const dummy = useRef();
+  
   const messagesRef = firestore.collection('messages');
   const query = messagesRef.orderBy('createdAt').limit(25);
 
@@ -78,14 +88,18 @@ function ChatRoom() {
     });
 
     setFormValue('')                                                                  //resetting form value back to an empty string
+
+    dummy.current.scrollIntoView({ behavior: 'smooth'});
   }
 
 
   return(
     <>
-      <div>
-        {messages && messages.map(msg => <ChatMessage key={msg.id} message={msg} />)}
-      </div>
+      <main>
+          {messages && messages.map(msg => <ChatMessage key={msg.id} message={msg} />)}
+
+          <span ref={dummy}></span>
+      </main>
 
       <form onSubmit={sendMessage}>
         
@@ -104,12 +118,12 @@ function ChatMessage(props) {
 
   const messageClass = uid === auth.currentUser.uid ? 'sent' : 'received';
 
-  return(
+  return(<>
     <div className={'message ${messageClass}'}>
-      <img src={photoURL}/>
+      <img src={photoURL || 'https://api.adorable.io/avatars/23/abott@adorable.png'}/>
       <p>{text}</p>
     </div>
-  )
+  </>)
 }
 
 export default App;
